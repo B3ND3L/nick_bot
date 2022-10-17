@@ -42,7 +42,11 @@ async def do_action(message: Message, mentioned_ids: list) -> str:
                 if member.id == id:
                     old_name = member.name
                     print(f'FOUND IT ! {old_name}')
-                    await member.edit(nick=new_name)
+                    try:
+                        await member.edit(nick=new_name)
+                    except Exception:
+                        return f'Je n\'ai pas les droits de rename {old_name}'
+
         return f'Renommage de {old_name} en {new_name}'
     else :
         return 'Bad command :('
