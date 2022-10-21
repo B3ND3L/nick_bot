@@ -1,8 +1,10 @@
 # This example requires the 'message_content' intent.
+import sys
 
 import discord
 import re
 from discord import Message
+from ruamel.yaml import YAML
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -10,6 +12,10 @@ intents.members = True
 
 client = discord.Client(intents=intents)
 
+conf_file = open("../config/nick_bot/config.yaml")
+
+yaml = YAML()
+config = yaml.load(conf_file)
 
 @client.event
 async def on_ready():
@@ -52,4 +58,4 @@ async def do_action(message: Message, mentioned_ids: list) -> str:
         return 'Bad command :('
 
 
-client.run('MTAzMTU4Nzk4NTQ5MTIzMDc3MA.GXhxpc.d5SAdKc_yPKGsnEhqUIXAeHu9i7Xh_RWVOshec')
+client.run(config['token'])

@@ -7,6 +7,7 @@ authors = ["B3ND3L <delahais.b@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 discord = "^2.0.0"
+"ruamel.yaml" = "^0.17.21"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
