@@ -12,8 +12,33 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Connection to Registry
-      run: docker login -u=${{ secrets.DOCKER_HUB_USER }} -p=${{ secrets.DOCKER_HUB_PASSWORD }} ${{ secrets.DOCKER_HUB_HOST }}
+      run: docker login -u=${{ secrets.DOCKERHUB_USER }} -p=${{ secrets.DOCKERHUB_PASSWORD }} ${{ secrets.DOCKERHUB_HTTP_HOST }}
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag dockerhub.lemazo.online/discord_bot/nick_bot:$GITHUB_SHA
+      run: docker build . --file Dockerfile --tag dockerhub.lemazo.online/discord_bot/nick_bot:$GITHUB_SHA --tag dockerhub.lemazo.online/discord_bot/nick_bot:latest
     - name: Push the Docker Image to Registry
-      run: docker push dockerhub.lemazo.online/discord_bot/nick_bot:$GITHUB_SHA
+      run: docker push dockerhub.lemazo.online/discord_bot/nick_bot --all-tags
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/prod.key
+          chmod 600 ~/.ssh/prod.key
+          cat >>~/.ssh/config <<END
+          Host prod
+            HostName $SSH_HOST
+            User $SSH_USER
+            IdentityFile ~/.ssh/prod.key
+            StrictHostKeyChecking no
+          END
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: Stop the server
+        run: ssh prod 'docker stop nick && docker rm nick'
+
+      - name: Start the server
+        run: ssh prod 'docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot'
