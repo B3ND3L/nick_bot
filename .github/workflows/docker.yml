@@ -39,6 +39,7 @@ jobs:
 
       - name: Stop the server
         run: ssh prod 'docker stop nick && docker rm nick'
+        continue-on-error: true
 
       - name: Start the server
         run: ssh prod 'docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot'
