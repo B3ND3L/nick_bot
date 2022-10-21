@@ -12,7 +12,7 @@ intents.members = True
 
 client = discord.Client(intents=intents)
 
-conf_file = open("../config/nick_bot/config.yaml")
+conf_file = open("/config/config.yaml")
 
 yaml = YAML()
 config = yaml.load(conf_file)
