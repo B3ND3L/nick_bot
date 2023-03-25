@@ -17,26 +17,26 @@ jobs:
       run: docker build . --file Dockerfile --tag dockerhub.lemazo.online/discord_bot/nick_bot:$GITHUB_SHA --tag dockerhub.lemazo.online/discord_bot/nick_bot:latest
     - name: Push the Docker Image to Registry
       run: docker push dockerhub.lemazo.online/discord_bot/nick_bot --all-tags
-  #deploy:
-  #  runs-on: ubuntu-latest
-  #  needs: build
-  #  steps:
-  #    - name: Configure SSH
-  #      run: |
-  #        mkdir -p ~/.ssh/
-  #        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/prod.key
-  #        chmod 600 ~/.ssh/prod.key
-  #        cat >>~/.ssh/config <<END
-  #        Host ${{ secrets.SSH_HOST }}
-  #          HostName ${{ secrets.SSH_HOST }}
-  #          User ${{ secrets.SSH_USER }}
-  #          IdentityFile ~/.ssh/prod.key
-  #          StrictHostKeyChecking no
-  #        END
-#
-  #    - name: Stop the server
-  #      run: ssh ${{ secrets.SSH_HOST }} 'docker stop nick && docker rm nick'
-  #      continue-on-error: true
-#
-  #    - name: Start the server
-  #      run: ssh ${{ secrets.SSH_HOST }} 'docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot'
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/prod.key
+          chmod 600 ~/.ssh/prod.key
+          cat >>~/.ssh/config <<END
+          Host ${{ secrets.SSH_HOST }}
+            HostName ${{ secrets.SSH_HOST }}
+            User ${{ secrets.SSH_USER }}
+            IdentityFile ~/.ssh/prod.key
+            StrictHostKeyChecking no
+          END
+
+      - name: Stop the server
+        run: ssh ${{ secrets.SSH_HOST }} 'docker stop nick && docker rm nick'
+        continue-on-error: true
+
+      - name: Start the server
+        run: ssh ${{ secrets.SSH_HOST }} 'docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot'
