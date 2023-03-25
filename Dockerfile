@@ -1,4 +1,4 @@
-FROM duffn/python-poetry:3.10-slim-1.2.2
+FROM mwalbeck/python-poetry:1-3.10
 
 WORKDIR /root
 

@@ -31,4 +31,5 @@ jobs:
         script: |
           docker stop nick
           docker rm nick
-          docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot
+          docker rmi dockerhub.lemazo.online/discord_bot/nick_bot:latest
+          docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot:latest
