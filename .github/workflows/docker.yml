@@ -21,22 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/prod.key
-          chmod 600 ~/.ssh/prod.key
-          cat >>~/.ssh/config <<END
-          Host ${{ secrets.SSH_HOST }}
-            HostName ${{ secrets.SSH_HOST }}
-            User ${{ secrets.SSH_USER }}
-            IdentityFile ~/.ssh/prod.key
-            StrictHostKeyChecking no
-          END
-
-      - name: Stop the server
-        run: ssh ${{ secrets.SSH_HOST }} 'docker stop nick && docker rm nick'
-        continue-on-error: true
-
-      - name: Start the server
-        run: ssh ${{ secrets.SSH_HOST }} 'docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot'
+    - name: Deploy new version
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: 22
+        script: |
+          docker stop nick
+          docker rm nick
+          docker run -d --name nick dockerhub.lemazo.online/discord_bot/nick_bot
