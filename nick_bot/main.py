@@ -33,11 +33,11 @@ async def on_message(message: Message):
     if message.author == client.user:
         return
 
-        match_rename = re.match(RENAME_REGEX, message.content)
-        new_name = match_rename.group(1)
+    match_rename = re.match(RENAME_REGEX, message.content)
+    new_name = match_rename.group(1)
 
-        match_add_battletag = re.search(ADD_BATTLETAG_REGEX, message.content)
-        battletag = match_add_battletag.group(1)
+    match_add_battletag = re.search(ADD_BATTLETAG_REGEX, message.content)
+    battletag = match_add_battletag.group(1)
 
     if message.mentions:
         mentioned_ids = list(map(lambda mention: mention.id, message.mentions))
