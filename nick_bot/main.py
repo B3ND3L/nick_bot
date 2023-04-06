@@ -4,15 +4,17 @@ import sys
 import discord
 import re
 from discord import Message
+from discord import Member
 from ruamel.yaml import YAML
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.presences = True
 
 client = discord.Client(intents=intents)
 
-conf_file = open("/config/config.yaml")
+conf_file = open("../config/config.yaml")
 
 yaml = YAML()
 config = yaml.load(conf_file)
@@ -33,11 +35,16 @@ async def on_message(message: Message):
     if message.author == client.user:
         return
 
-    match_rename = re.match(RENAME_REGEX, message.content)
-    new_name = match_rename.group(1)
+    new_name = None
+    battletag= None
 
-    match_add_battletag = re.search(ADD_BATTLETAG_REGEX, message.content)
-    battletag = match_add_battletag.group(1)
+    match_rename = re.match(RENAME_REGEX, message.content)
+    if match_rename:
+        new_name = match_rename.group(1)
+
+    match_add_battletag = re.match(ADD_BATTLETAG_REGEX, message.content)
+    if match_add_battletag:
+        battletag = match_add_battletag.group(1)
 
     if message.mentions:
         mentioned_ids = list(map(lambda mention: mention.id, message.mentions))
@@ -52,8 +59,8 @@ async def on_message(message: Message):
 
 
 @client.event
-async def on_presence_update(member, before, after):
-    print(member)
+async def on_presence_update(before: Member, after: Member):
+    print(after.name)
     for activity in after.activities:
         print(activity.name)
 
