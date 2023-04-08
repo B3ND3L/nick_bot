@@ -1,10 +1,10 @@
-from nick_bot.datas.OverwatchDB import OverwatchDB
+import DatabaseSingletonFactory
 
 
 class BattletagService:
 
     def __init__(self, config):
-        self._overwatch_database = OverwatchDB(config)
+        self._overwatch_database = DatabaseSingletonFactory.get_instance(config['database'])
 
     def get_battletags(self, discord_name: str) -> list:
         documents = self._overwatch_database.find_battletag_by_discord_name(discord_name)

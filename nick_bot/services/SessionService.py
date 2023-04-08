@@ -3,12 +3,14 @@ from discord import Member
 from nick_bot.datas.OverwatchApi import OverwatchApi
 from nick_bot.services.BattletagService import BattletagService
 
+import DatabaseSingletonFactory
 
 class SessionService:
 
     def __init__(self, config: dict, battletag_service: BattletagService):
         self._battletag_service = battletag_service
-        self._overwatch_api = OverwatchApi(config)
+        self._overwatch_api = OverwatchApi(config['api'])
+        self._overwatch_database = DatabaseSingletonFactory.get_instance(config['database'])
 
     def on_presence(self, before: Member, after: Member):
         member_name = after.name
