@@ -41,4 +41,4 @@ class MessageService:
                     battletag = match_remove_battletag.group(1)
                     return_message = self._battletag_service.remove_battletag(battletag, message.author.name)
 
-        return return_message
+                return return_message
