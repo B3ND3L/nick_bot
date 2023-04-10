@@ -18,10 +18,10 @@ client = discord.Client(intents=intents)
 yaml = YAML()
 config = yaml.load(open("../config/config.yaml"))
 
-battletag_service = BattletagService(config['database'])
+battletag_service = BattletagService(config)
 rename_service = RenameService(client)
 message_service = MessageService(battletag_service, rename_service)
-session_service = SessionService(config['api'], battletag_service)
+session_service = SessionService(config, battletag_service)
 
 
 @client.event

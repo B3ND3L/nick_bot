@@ -1,14 +1,17 @@
 from discord import Member
 
 from nick_bot.datas.OverwatchApi import OverwatchApi
+from nick_bot.datas.OverwatchDB import OverwatchDB
 from nick_bot.services.BattletagService import BattletagService
 
+from nick_bot.services.SingletonFactory import SingletonFactory
 
 class SessionService:
 
     def __init__(self, config: dict, battletag_service: BattletagService):
         self._battletag_service = battletag_service
-        self._overwatch_api = OverwatchApi(config)
+        self._overwatch_api = OverwatchApi(config['api'])
+        self._overwatch_database : OverwatchDB = SingletonFactory.get_overwatch_db_instance(config['database'])
 
     def on_presence(self, before: Member, after: Member):
         member_name = after.name
@@ -45,7 +48,7 @@ class SessionService:
         for battletag in battletags:
             player_id = self.format_battletag(battletag)
             stats = self._overwatch_api.get_stat(player_id)
-            print(stats)
+            self._overwatch_database.insert_document('testing_collection', stats)
 
     def format_battletag(self, battletag:str) -> str:
         return battletag.replace('#', '-')
