@@ -34,7 +34,8 @@ async def on_message(message: Message):
     if message.author == client.user:
         return
     response = message_service.read_message(client.user.id, message)
-    await message.channel.send(response)
+    if response:
+        await message.channel.send(response)
 
 
 @client.event

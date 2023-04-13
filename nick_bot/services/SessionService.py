@@ -41,7 +41,10 @@ class SessionService:
     def session_start(self, discord_name):
         battletags = self._battletag_service.get_battletags(discord_name)
         all_stats = self.get_stats(battletags)
-        self.insert_all_temp_stats(all_stats)
+        if all_stats:
+            self.insert_all_temp_stats(all_stats)
+        else:
+            print('/!\ NO DATA')
 
     def session_stop(self, discord_name):
         battletags = self._battletag_service.get_battletags(discord_name)
