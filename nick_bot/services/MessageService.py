@@ -20,7 +20,7 @@ class MessageService:
         self._battletag_service = battletag_service
         self._rename_service = rename_service
 
-    def read_message(self, client_id: int, message: Message) -> str:
+    async def read_message(self, client_id: int, message: Message) -> str:
 
         content = message.content
         match_rename = re.match(self.__RENAME_REGEX, content)
@@ -35,25 +35,24 @@ class MessageService:
             if client_id in mentioned_ids:
                 mentioned_ids.remove(client_id)
                 if match_rename:
-                    new_name = match_rename.group(1)
-                    return_message = self._rename_service.renaming(new_name, mentioned_ids)
+                    new_name = match_rename.group(3)
+                    return_message = await self._rename_service.renaming(new_name, mentioned_ids)
                 elif match_add_battletag:
-                    battletag = match_add_battletag.group(1)
+                    battletag = await match_add_battletag.group(3)
                     return_message = self._battletag_service.add_battletag(battletag, message.author.name)
                 elif match_remove_battletag:
-                    battletag = match_remove_battletag.group(1)
+                    battletag = await match_remove_battletag.group(3)
                     return_message = self._battletag_service.remove_battletag(battletag, message.author.name)
                 elif match_help:
                     return_message = '''
-                    Voici les commandes que tu peux tapper:
-                    Pour recevoir de l'aide :
-                    `help`
-                    Pour renommer quelqu'un:
-                    `renomme @name en nouveau_nom`
-                    Pour ajouter un battletag:
-                    `ajoute battletag MONBATTLETAG#1234`
-                    Pour retirer un battletag:
-                    `retire battletag MONBATTLETAG#1234`
+Voici les commandes que tu peux tapper:
+Pour recevoir de l'aide :
+`help`
+Pour renommer quelqu'un:
+`renomme @name en nouveau_nom`
+Pour ajouter un battletag:
+`ajoute battletag MONBATTLETAG#1234`
+Pour retirer un battletag:
+`retire battletag MONBATTLETAG#1234`
                     '''
-
                 return return_message

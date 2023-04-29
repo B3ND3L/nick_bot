@@ -33,7 +33,7 @@ async def on_ready():
 async def on_message(message: Message):
     if message.author == client.user:
         return
-    response = message_service.read_message(client.user.id, message)
+    response = await message_service.read_message(client.user.id, message)
     if response:
         await message.channel.send(response)
 
