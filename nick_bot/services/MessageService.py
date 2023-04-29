@@ -8,11 +8,13 @@ from nick_bot.services.RenameService import RenameService
 
 class MessageService:
     # REGEX : @nick_bot renomme @someone en new_name
-    __RENAME_REGEX = re.compile('<@\d+>\s+renomme\s+<@\d+>\s+en\s+(.*)')
+    __RENAME_REGEX = re.compile('<@\d+>\s+(renomme|rename)\s+<@\d+>\s+(en|to)\s+(.*)')
     # REGEX : @nick_bot ajoute mon <battletag>
-    __ADD_BATTLETAG_REGEX = re.compile('<@\d+>\s+ajoute\s+mon\s+battletag\s+(.*)')
+    __ADD_BATTLETAG_REGEX = re.compile('<@\d+>\s+(add|ajoute)\s+(my|mon)\s+battletag\s+(.*)')
     # REGEX : @nick_bot retire mon <battletag>
-    __REMOVE_BATTLETAG_REGEX = re.compile('<@\d+>\s+retire\s+mon\s+battletag\s+(.*)')
+    __REMOVE_BATTLETAG_REGEX = re.compile('<@\d+>\s+(remove|retire>\s+(my|mon)\s+battletag\s+(.*)')
+    # REGEX : @nick_bot help
+    __HELP = re.compile('<@\d+>\s+(help|aide)')
 
     def __init__(self, battletag_service: BattletagService, rename_service: RenameService):
         self._battletag_service = battletag_service
@@ -24,6 +26,7 @@ class MessageService:
         match_rename = re.match(self.__RENAME_REGEX, content)
         match_add_battletag = re.match(self.__ADD_BATTLETAG_REGEX, content)
         match_remove_battletag = re.match(self.__REMOVE_BATTLETAG_REGEX, content)
+        match_help = re.match(self.__HELP, content)
 
         return_message = 'Je ne sais pas quoi répondre.'
 
@@ -40,5 +43,17 @@ class MessageService:
                 elif match_remove_battletag:
                     battletag = match_remove_battletag.group(1)
                     return_message = self._battletag_service.remove_battletag(battletag, message.author.name)
+                elif match_help:
+                    return_message = '''
+                    Voici les commandes que tu peux tapper:
+                    Pour recevoir de l'aide :
+                    `help`
+                    Pour renommer quelqu'un:
+                    `renomme @name en nouveau_nom`
+                    Pour ajouter un battletag:
+                    `ajoute battletag MONBATTLETAG#1234`
+                    Pour retirer un battletag:
+                    `retire battletag MONBATTLETAG#1234`
+                    '''
 
                 return return_message
