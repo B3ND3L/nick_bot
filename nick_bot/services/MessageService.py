@@ -12,7 +12,7 @@ class MessageService:
     # REGEX : @nick_bot ajoute mon <battletag>
     __ADD_BATTLETAG_REGEX = re.compile('<@\d+>\s+(add|ajoute)\s+(my|mon)\s+battletag\s+(.*)')
     # REGEX : @nick_bot retire mon <battletag>
-    __REMOVE_BATTLETAG_REGEX = re.compile('<@\d+>\s+(remove|retire>\s+(my|mon)\s+battletag\s+(.*)')
+    __REMOVE_BATTLETAG_REGEX = re.compile('<@\d+>\s+(remove|retire)\s+(my|mon)\s+battletag\s+(.*)')
     # REGEX : @nick_bot help
     __HELP = re.compile('<@\d+>\s+(help|aide)')
 
