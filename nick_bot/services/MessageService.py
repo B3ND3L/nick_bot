@@ -38,10 +38,10 @@ class MessageService:
                     new_name = match_rename.group(3)
                     return_message = await self._rename_service.renaming(new_name, mentioned_ids)
                 elif match_add_battletag:
-                    battletag = await match_add_battletag.group(3)
+                    battletag = match_add_battletag.group(3)
                     return_message = self._battletag_service.add_battletag(battletag, message.author.name)
                 elif match_remove_battletag:
-                    battletag = await match_remove_battletag.group(3)
+                    battletag = match_remove_battletag.group(3)
                     return_message = self._battletag_service.remove_battletag(battletag, message.author.name)
                 elif match_help:
                     return_message = '''
@@ -51,8 +51,8 @@ Pour recevoir de l'aide :
 Pour renommer quelqu'un:
 `renomme @name en nouveau_nom`
 Pour ajouter un battletag:
-`ajoute battletag MONBATTLETAG#1234`
+`ajoute mon battletag MONBATTLETAG#1234`
 Pour retirer un battletag:
-`retire battletag MONBATTLETAG#1234`
+`retire mon battletag MONBATTLETAG#1234`
                     '''
                 return return_message
