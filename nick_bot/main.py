@@ -40,7 +40,7 @@ async def on_message(message: Message):
 
 @client.event
 async def on_presence_update(before: Member, after: Member):
-    session_service.on_presence(before, after)
+    await session_service.on_presence(before, after)
 
 
 client.run(config['token'])

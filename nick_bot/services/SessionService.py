@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 
 from discord import Member
@@ -11,12 +12,14 @@ from nick_bot.services.SingletonFactory import SingletonFactory
 
 class SessionService:
 
+    __TIME_BETWEEN_REQUEST: int = 4000
+
     def __init__(self, config: dict, battletag_service: BattletagService):
         self._battletag_service = battletag_service
         self._overwatch_api = OverwatchApi(config['api'])
         self._overwatch_database: OverwatchDB = SingletonFactory.get_overwatch_db_instance(config['database'])
 
-    def on_presence(self, before: Member, after: Member):
+    async def on_presence(self, before: Member, after: Member):
         member_name = after.name
         intersting_activities = ['Overwatch 2']
 
@@ -36,7 +39,7 @@ class SessionService:
             self.session_start(member_name)
         elif was_ingame and not now_ingame:
             print(f'{member_name} stopped to play')
-            self.session_stop(member_name)
+            await self.session_stop(member_name)
 
     def session_start(self, discord_name):
         battletags = self._battletag_service.get_battletags(discord_name)
@@ -46,15 +49,12 @@ class SessionService:
         else:
             print('/!\ NO DATA')
 
-    def session_stop(self, discord_name):
+    async def session_stop(self, discord_name):
         battletags = self._battletag_service.get_battletags(discord_name)
-        after_session_stats = self.get_stats(battletags)
-        before_session_stats = self.get_saved_stats(battletags)
-
-        session_stats = self.compute_session_stat(before_session_stats, after_session_stats)
+        session_stats = await self.compute_session_stat(battletags)
         if session_stats:
             self.insert_all_session_stats(session_stats)
-            self._overwatch_database.delete_temp_stats_by_battletags(battletags)
+        self._overwatch_database.delete_temp_stats_by_battletags(battletags)
 
     def get_stats(self, battletags: list):
         all_stats = list()
@@ -65,6 +65,10 @@ class SessionService:
             stats['date'] = datetime.datetime.now()
             all_stats.append(stats)
         return all_stats
+
+    def get_player_stats(self, battletag: str) -> dict:
+        player_id = self.format_battletag(battletag)
+        return self._overwatch_api.get_stat(player_id)
 
     def insert_all_session_stats(self, all_stats):
         self._overwatch_database.insert_all_session_stats(all_stats)
@@ -79,17 +83,22 @@ class SessionService:
             returned_stats.append(stat)
         return returned_stats
 
-    def compute_session_stat(self, before_session_stats, after_session_stats) -> list:
-        before_session_stats = self.format_stats(before_session_stats)
-        after_session_stats = self.format_stats(after_session_stats)
-
+    async def compute_session_stat(self, battletags) -> list:
+        before_session_stats = self.format_stats(self.get_saved_stats(battletags))
         delta_session_stats = list()
 
         for player, before_stat in before_session_stats.items():
+            session_time_start = before_stat['date']
+            now = datetime.datetime.now()
+            delta = now - session_time_start
+            if delta.seconds > self.__TIME_BETWEEN_REQUEST:
+                after_stat = self.get_player_stats(player)
+            else:
+                waiting_time = self.__TIME_BETWEEN_REQUEST - delta.seconds
+                print(f'attente de {waiting_time} secondes pour une nouvelle récupération des stats')
+                after_stat = await asyncio.sleep(waiting_time, self.get_player_stats(player))
 
             delta_stat = dict()
-
-            after_stat = after_session_stats[player]
             nb_game_tank = after_stat['roles']['tank']['games_played'] - before_stat['roles']['tank']['games_played']
             nb_game_dps = after_stat['roles']['damage']['games_played'] - before_stat['roles']['damage']['games_played']
             nb_game_supp = after_stat['roles']['support']['games_played'] - before_stat['roles']['support'][
@@ -108,7 +117,7 @@ class SessionService:
                 if nb_game_dps > 0:
                     delta_stat['damage'] = self.make_diff(before_stat['roles']['damage'],
                                                           after_stat['roles']['damage'])
-            delta_session_stats.append(delta_stat)
+                delta_session_stats.append(delta_stat)
         return delta_session_stats
 
     @staticmethod
