@@ -60,7 +60,7 @@ class SessionService:
         all_stats = list()
         for battletag in battletags:
             player_id = self.format_battletag(battletag)
-            stats = self._overwatch_api.get_stat(player_id)
+            stats = self._overwatch_api.get_summary_stats(player_id)
             stats['player'] = battletag
             stats['date'] = datetime.datetime.now()
             all_stats.append(stats)
@@ -68,7 +68,7 @@ class SessionService:
 
     def get_player_stats(self, battletag: str) -> dict:
         player_id = self.format_battletag(battletag)
-        return self._overwatch_api.get_stat(player_id)
+        return self._overwatch_api.get_summary_stats(player_id)
 
     def insert_all_session_stats(self, all_stats):
         self._overwatch_database.insert_all_session_stats(all_stats)

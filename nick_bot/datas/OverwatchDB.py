@@ -8,6 +8,7 @@ class OverwatchDB:
     __BATTLETAG_COLLECTION_NAME = 'Battletags'
     __TEMP_STAT_COLLECTION_NAME = 'Temp_stats'
     __SESSIONS_COLLECTION_NAME = 'Sessions'
+    __HEROES_COLLECTION_NAME = 'Heroes'
 
     def __init__(self, config: dict):
         user = config['user']
@@ -60,6 +61,18 @@ class OverwatchDB:
 
     """
     
+    MANAGE HEROES DOCUMENTS
+    
+    """
+
+    def insert_heroes(self, heroes: list):
+        self.insert_documents(self.__HEROES_COLLECTION_NAME, heroes)
+
+    def delete_all_heroes(self):
+        self.delete_documents(self.__HEROES_COLLECTION_NAME)
+
+    """
+    
     GENERIC MONGO OPERATIONS
     
     """
@@ -81,10 +94,14 @@ class OverwatchDB:
         collection = self._db_client.get_database(self.__DATABASE_NAME).get_collection(collection_name)
         collection.delete_one(filters)
 
+    def delete_documents(self, collection_name: str, filters: dict={}):
+        collection = self._db_client.get_database(self.__DATABASE_NAME).get_collection(collection_name)
+        collection.delete_many(filters)
+
     def find_one_document(self, collection_name: str, filters: dict):
         collection = self._db_client.get_database(self.__DATABASE_NAME).get_collection(collection_name)
         return collection.find(filters, {}, limit=1)
 
-    def find_documents(self, collection_name: str, filters: dict, project={}):
+    def find_documents(self, collection_name: str, filters: dict, project: dict={}):
         collection = self._db_client.get_database(self.__DATABASE_NAME).get_collection(collection_name)
         return collection.find(filters, project)
