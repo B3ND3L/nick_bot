@@ -26,11 +26,20 @@ session_service = SessionService(config, battletag_service)
 
 @client.event
 async def on_ready():
+    """
+    When the bot is ready
+    :return:
+    """
     print(f'We have logged in as {client.user}')
 
 
 @client.event
 async def on_message(message: Message):
+    """
+    When a message is received
+    :param message:
+    :return:
+    """
     if message.author == client.user:
         return
     response = await message_service.read_message(client.user.id, message)
@@ -40,6 +49,12 @@ async def on_message(message: Message):
 
 @client.event
 async def on_presence_update(before: Member, after: Member):
+    """
+    When a user status is updated
+    :param before:
+    :param after:
+    :return:
+    """
     await session_service.on_presence(before, after)
 
 

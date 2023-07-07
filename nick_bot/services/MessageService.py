@@ -7,6 +7,11 @@ from nick_bot.services.RenameService import RenameService
 
 
 class MessageService:
+
+    """
+    Service to manage the messages
+    """
+
     # REGEX : @nick_bot renomme @someone en new_name
     __RENAME_REGEX = re.compile('<@\d+>\s+(renomme|rename)\s+<@\d+>\s+(en|to)\s+(.*)')
     # REGEX : @nick_bot ajoute mon <battletag>
@@ -17,10 +22,21 @@ class MessageService:
     __HELP = re.compile('<@\d+>\s+(help|aide)')
 
     def __init__(self, battletag_service: BattletagService, rename_service: RenameService):
+        """
+        Constructor
+        :param battletag_service:
+        :param rename_service:
+        """
         self._battletag_service = battletag_service
         self._rename_service = rename_service
 
     async def read_message(self, client_id: int, message: Message) -> str:
+        """
+        Read a message and return a response
+        :param client_id:
+        :param message:
+        :return:
+        """
 
         content = message.content
         match_rename = re.match(self.__RENAME_REGEX, content)

@@ -3,10 +3,24 @@ from discord import Client
 
 class RenameService:
 
+    """
+    Service to manage the renaming
+    """
+
     def __init__(self, discord_client: Client) -> str:
+        """
+        Constructor
+        :param discord_client:
+        """
         self._discord_client = discord_client
 
     async def renaming(self, new_name: str, mentioned_ids: list) -> str:
+        """
+        Rename a user
+        :param new_name:
+        :param mentioned_ids:
+        :return:
+        """
         message = 'Impossible de renommer l\'utilisateur'
         members = self._discord_client.get_all_members()
         for member in members:

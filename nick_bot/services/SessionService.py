@@ -12,14 +12,30 @@ from nick_bot.services.SingletonFactory import SingletonFactory
 
 class SessionService:
 
+    """
+    Service to manage the sessions
+    """
+
     __TIME_BETWEEN_REQUEST: int = 4000
+    __ROLES: list = ('Tank', 'Damage', 'Support')
 
     def __init__(self, config: dict, battletag_service: BattletagService):
+        """
+        Constructor
+        :param config:
+        :param battletag_service:
+        """
         self._battletag_service = battletag_service
         self._overwatch_api = OverwatchApi(config['api'])
         self._overwatch_database: OverwatchDB = SingletonFactory.get_overwatch_db_instance(config['database'])
 
     async def on_presence(self, before: Member, after: Member):
+        """
+        Check if a player started or stopped to play
+        :param before:
+        :param after:
+        :return:
+        """
         member_name = after.name
         intersting_activities = ['Overwatch 2']
 
@@ -42,6 +58,11 @@ class SessionService:
             await self.session_stop(member_name)
 
     def session_start(self, discord_name):
+        """
+        Start a session for a player
+        :param discord_name:
+        :return:
+        """
         battletags = self._battletag_service.get_battletags(discord_name)
         all_stats = self.get_stats(battletags)
         if all_stats:
@@ -50,6 +71,11 @@ class SessionService:
             print('/!\ NO DATA')
 
     async def session_stop(self, discord_name):
+        """
+        Stop a session for a player
+        :param discord_name:
+        :return:
+        """
         battletags = self._battletag_service.get_battletags(discord_name)
         session_stats = await self.compute_session_stat(battletags)
         if session_stats:
@@ -57,6 +83,11 @@ class SessionService:
         self._overwatch_database.delete_temp_stats_by_battletags(battletags)
 
     def get_stats(self, battletags: list):
+        """
+        Get stats for a list of battletags
+        :param battletags:
+        :return:
+        """
         all_stats = list()
         for battletag in battletags:
             player_id = self.format_battletag(battletag)
@@ -67,16 +98,36 @@ class SessionService:
         return all_stats
 
     def get_player_stats(self, battletag: str) -> dict:
+        """
+        Get stats for a battletag
+        :param battletag:
+        :return:
+        """
         player_id = self.format_battletag(battletag)
         return self._overwatch_api.get_summary_stats(player_id)
 
     def insert_all_session_stats(self, all_stats):
+        """
+        Insert all session stats in database
+        :param all_stats:
+        :return:
+        """
         self._overwatch_database.insert_all_session_stats(all_stats)
 
     def insert_all_temp_stats(self, all_stats):
+        """
+        Insert all temp stats in database
+        :param all_stats:
+        :return:
+        """
         self._overwatch_database.insert_all_stats(all_stats)
 
     def get_saved_stats(self, battletags):
+        """
+        Get saved stats for a list of battletags
+        :param battletags:
+        :return:
+        """
         stats_cursor = self._overwatch_database.get_stats_multiple_battletag(battletags)
         returned_stats = list()
         for stat in stats_cursor:
@@ -84,6 +135,11 @@ class SessionService:
         return returned_stats
 
     async def compute_session_stat(self, battletags) -> list:
+        """
+        Compute session stats for a list of battletags
+        :param battletags:
+        :return:
+        """
         before_session_stats = self.format_stats(self.get_saved_stats(battletags))
         delta_session_stats = list()
 
@@ -99,35 +155,30 @@ class SessionService:
                 after_stat = await asyncio.sleep(waiting_time, self.get_player_stats(player))
 
             delta_stat = dict()
-            nb_game_tank = after_stat['roles']['tank']['games_played'] - before_stat['roles']['tank']['games_played']
-            nb_game_dps = after_stat['roles']['damage']['games_played'] - before_stat['roles']['damage']['games_played']
-            nb_game_supp = after_stat['roles']['support']['games_played'] - before_stat['roles']['support'][
-                'games_played']
 
-            if nb_game_tank == 0 and nb_game_supp == 0 and nb_game_dps == 0:
+            nb_games_played = self.compute_nb_games_played(before_stat, after_stat)
+            if nb_games_played == 0:
                 print(f'{player} didn\'t play this session')
             else:
-                delta_stat['player'] = player
-                if nb_game_tank > 0:
-                    delta_stat['tank'] = self.make_diff(before_stat['roles']['tank'],
-                                                        after_stat['roles']['tank'])
-                if nb_game_supp > 0:
-                    delta_stat['support'] = self.make_diff(before_stat['roles']['support'],
-                                                           after_stat['roles']['support'])
-                if nb_game_dps > 0:
-                    delta_stat['damage'] = self.make_diff(before_stat['roles']['damage'],
-                                                          after_stat['roles']['damage'])
-                delta_session_stats.append(delta_stat)
+                for role in self.__ROLES:
+                    delta_stat['player'] = player
+                    delta_stat[role] = self.make_diff(before_stat['roles'][role], after_stat['roles'][role])
+                    delta_session_stats.append(delta_stat)
         return delta_session_stats
 
-    @staticmethod
-    def make_diff(stat_before: dict, stat_after: dict) -> dict:
-
+    def make_diff(self, stat_before: dict, stat_after: dict) -> dict:
+        """
+        Make the difference between two session stats
+        :param stat_before:
+        :param stat_after:
+        :return:
+        """
         delta_stat = dict()
 
         delta_stat['games_played'] = stat_after['games_played'] - stat_before['games_played']
         delta_stat['time_played'] = stat_after['time_played'] - stat_before['time_played']
-        delta_stat['winrate'] = stat_after['winrate'] - stat_before['winrate']
+        delta_stat['winrate'] = self.compute_winrate_diff(stat_before['winrate'], stat_after['winrate'],
+                                                          stat_before['games_played'], stat_after['games_played'])
         delta_stat['kda'] = stat_after['kda'] - stat_before['kda']
         delta_stat['total'] = dict()
         delta_stat['total']['eliminations'] = stat_after['total']['eliminations'] - stat_before['total']['eliminations']
@@ -139,8 +190,28 @@ class SessionService:
 
         return delta_stat
 
+    def compute_winrate_diff(self, before_winrate, after_winrate, before_games_played, after_games_played) -> float:
+        """
+        Compute winrate diff between two sessions
+        :param before_winrate:
+        :param after_winrate:
+        :param before_games_played:
+        :param after_games_played:
+        :return:
+        """
+        before_wins = self.compute_win_count_by_winrate_and_games(before_winrate, before_games_played)
+        after_wins = self.compute_win_count_by_winrate_and_games(after_winrate, after_games_played)
+        delta_wins = after_wins - before_wins
+        delta_games_played = after_games_played - before_games_played
+        return self.compute_winrate(delta_wins, delta_games_played)
+
     @staticmethod
     def format_stats(stats: list) -> dict:
+        """
+        Format stats in a dict
+        :param stats:
+        :return:
+        """
         returned_dict = {}
         for stat in stats:
             returned_dict[stat['player']] = stat
@@ -148,4 +219,40 @@ class SessionService:
 
     @staticmethod
     def format_battletag(battletag: str) -> str:
+        """
+        Format battletag to be used in API request
+        :param battletag:
+        :return:
+        """
         return battletag.replace('#', '-')
+
+    def compute_nb_games_played(before_stat, after_stat) -> int:
+        """
+        Compute number of games played between two sessions
+        :param after_stat:
+        :return:
+        """
+        nb_game_tank = after_stat['roles']['tank']['games_played'] - before_stat['roles']['tank']['games_played']
+        nb_game_supp = after_stat['roles']['support']['games_played'] - before_stat['roles']['support']['games_played']
+        nb_game_dps = after_stat['roles']['damage']['games_played'] - before_stat['roles']['damage']['games_played']
+        return nb_game_tank + nb_game_supp + nb_game_dps
+
+    @staticmethod
+    def compute_win_count_by_winrate_and_games(winrate, games_played) -> int:
+        """
+        Compute win count by winrate and games played
+        :param winrate:
+        :param games_played:
+        :return:
+        """
+        return round(winrate * games_played / 100)
+
+    @staticmethod
+    def compute_winrate(wins, games_played) -> float:
+        """
+        Compute winrate
+        :param wins:
+        :param games_played:
+        :return:
+        """
+        return round(wins / games_played * 100, 2)

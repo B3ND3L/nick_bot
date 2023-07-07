@@ -9,9 +9,18 @@ class BattletagService:
     __BATTLETAG_NOT_FOUND = 'Le battletag {battletag} n\'existe pas pour {discord_name}'
 
     def __init__(self, config):
+        """
+        Constructor
+        :param config:
+        """
         self._overwatch_database = SingletonFactory.get_overwatch_db_instance(config['database'])
 
     def get_battletags(self, discord_name: str) -> list:
+        """
+        Get all battletags for a player
+        :param discord_name:
+        :return:
+        """
         documents = self._overwatch_database.find_battletag_by_discord_name(discord_name)
         battletags = list()
         for document in documents:
@@ -20,6 +29,12 @@ class BattletagService:
         return battletags
 
     def add_battletag(self, battletag: str, discord_name: str) -> str:
+        """
+        Add a battletag for a player
+        :param battletag:
+        :param discord_name:
+        :return:
+        """
         mongo_result = self._overwatch_database.find_battletag_by_discord_name(discord_name)
         for mongo_player in mongo_result:
             battletags = mongo_player['battletags']
@@ -37,6 +52,12 @@ class BattletagService:
         return self.__ADD_BATTLETAG_PATTERN.format(battletag=battletag, discord_name=discord_name)
 
     def remove_battletag(self, battletag: str, discord_name: str) -> str:
+        """
+        Remove a battletag for a player
+        :param battletag:
+        :param discord_name:
+        :return:
+        """
         mongo_result = self._overwatch_database.find_battletag_by_discord_name(discord_name)
         for mongo_player in mongo_result:
             battletags = mongo_player['battletags']
