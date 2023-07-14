@@ -1,4 +1,6 @@
 import discord
+import logging
+
 from discord import Member
 from discord import Message
 from ruamel.yaml import YAML
@@ -23,6 +25,7 @@ rename_service = RenameService(client)
 message_service = MessageService(battletag_service, rename_service)
 session_service = SessionService(config, battletag_service)
 
+logger = logging.getLogger('discord')
 
 @client.event
 async def on_ready():
@@ -30,7 +33,7 @@ async def on_ready():
     When the bot is ready
     :return:
     """
-    print(f'We have logged in as {client.user}')
+    logger.info(f'{client.user} has connected to Discord!')
 
 
 @client.event

@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 
 from discord import Member
 
@@ -19,6 +20,7 @@ class SessionService:
     __TIME_BETWEEN_REQUEST: int = 4000
     __ROLES: list = ('Tank', 'Damage', 'Support')
 
+
     def __init__(self, config: dict, battletag_service: BattletagService):
         """
         Constructor
@@ -28,6 +30,7 @@ class SessionService:
         self._battletag_service = battletag_service
         self._overwatch_api = OverwatchApi(config['api'])
         self._overwatch_database: OverwatchDB = SingletonFactory.get_overwatch_db_instance(config['database'])
+        self._logger = logging.getLogger('discord')
 
     async def on_presence(self, before: Member, after: Member):
         """
@@ -51,10 +54,10 @@ class SessionService:
                 now_ingame = True
 
         if not was_ingame and now_ingame:
-            print(f'{member_name} started to play')
+            self._logger.info(f'{member_name} started to play')
             self.session_start(member_name)
         elif was_ingame and not now_ingame:
-            print(f'{member_name} stopped to play')
+            self._logger.info(f'{member_name} stopped to play')
             await self.session_stop(member_name)
 
     def session_start(self, discord_name):
@@ -68,7 +71,7 @@ class SessionService:
         if all_stats:
             self.insert_all_temp_stats(all_stats)
         else:
-            print('/!\ NO DATA')
+            self._logger.warning(f'No stats for {battletags}')
 
     async def session_stop(self, discord_name):
         """
@@ -151,14 +154,14 @@ class SessionService:
                 after_stat = self.get_player_stats(player)
             else:
                 waiting_time = self.__TIME_BETWEEN_REQUEST - delta.seconds
-                print(f'attente de {waiting_time} secondes pour une nouvelle récupération des stats')
+                self._logger.info(f'Waiting {waiting_time} seconds before requesting stats for {player}')
                 after_stat = await asyncio.sleep(waiting_time, self.get_player_stats(player))
 
             delta_stat = dict()
 
             nb_games_played = self.compute_nb_games_played(before_stat, after_stat)
             if nb_games_played == 0:
-                print(f'{player} didn\'t play this session')
+                self._logger.warning(f'No games played for {player}')
             else:
                 for role in self.__ROLES:
                     delta_stat['player'] = player
