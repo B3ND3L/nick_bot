@@ -18,7 +18,7 @@ class SessionService:
     """
 
     __TIME_BETWEEN_REQUEST: int = 4000
-    __ROLES: list = ('Tank', 'Damage', 'Support')
+    __ROLES: list = ('tank', 'damage', 'support')
 
 
     def __init__(self, config: dict, battletag_service: BattletagService):
@@ -178,18 +178,21 @@ class SessionService:
         """
         delta_stat = dict()
 
-        delta_stat['games_played'] = stat_after['games_played'] - stat_before['games_played']
-        delta_stat['time_played'] = stat_after['time_played'] - stat_before['time_played']
-        delta_stat['winrate'] = self.compute_winrate_diff(stat_before['winrate'], stat_after['winrate'],
-                                                          stat_before['games_played'], stat_after['games_played'])
-        delta_stat['kda'] = stat_after['kda'] - stat_before['kda']
-        delta_stat['total'] = dict()
-        delta_stat['total']['eliminations'] = stat_after['total']['eliminations'] - stat_before['total']['eliminations']
-        delta_stat['total']['assists'] = stat_after['total']['assists'] - stat_before['total']['assists']
-        delta_stat['total']['deaths'] = stat_after['total']['deaths'] - stat_before['total']['deaths']
-        delta_stat['total']['damage'] = stat_after['total']['damage'] - stat_before['total']['damage']
-        delta_stat['total']['healing'] = stat_after['total']['healing'] - stat_before['total']['healing']
-        # TODO Compute Average stats in this session
+        if self.compute_nb_game_played(stat_before['games_played'], stat_after['games_played']) == 0:
+            self._logger.warning(f'No games played for the role')
+        else:
+            delta_stat['games_played'] = stat_after['games_played'] - stat_before['games_played']
+            delta_stat['time_played'] = stat_after['time_played'] - stat_before['time_played']
+            delta_stat['winrate'] = self.compute_winrate_diff(stat_before['winrate'], stat_after['winrate'],
+                                                              stat_before['games_played'], stat_after['games_played'])
+            delta_stat['kda'] = stat_after['kda'] - stat_before['kda']
+            delta_stat['total'] = dict()
+            delta_stat['total']['eliminations'] = stat_after['total']['eliminations'] - stat_before['total']['eliminations']
+            delta_stat['total']['assists'] = stat_after['total']['assists'] - stat_before['total']['assists']
+            delta_stat['total']['deaths'] = stat_after['total']['deaths'] - stat_before['total']['deaths']
+            delta_stat['total']['damage'] = stat_after['total']['damage'] - stat_before['total']['damage']
+            delta_stat['total']['healing'] = stat_after['total']['healing'] - stat_before['total']['healing']
+            # TODO Compute Average stats in this session
 
         return delta_stat
 
@@ -240,6 +243,15 @@ class SessionService:
         nb_game_supp = after_stat['roles']['support']['games_played'] - before_stat['roles']['support']['games_played']
         nb_game_dps = after_stat['roles']['damage']['games_played'] - before_stat['roles']['damage']['games_played']
         return nb_game_tank + nb_game_supp + nb_game_dps
+
+    def compute_nb_game_played(self, before_game: int, after_game: int) -> int:
+        """
+        Compute number of games played between two sessions
+        :param before_game:
+        :param after_game:
+        :return:
+        """
+        return after_game - before_game
 
     @staticmethod
     def compute_win_count_by_winrate_and_games(winrate, games_played) -> int:
