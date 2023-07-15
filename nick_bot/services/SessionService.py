@@ -229,9 +229,10 @@ class SessionService:
         """
         return battletag.replace('#', '-')
 
-    def compute_nb_games_played(before_stat, after_stat) -> int:
+    def compute_nb_games_played(self, before_stat, after_stat) -> int:
         """
         Compute number of games played between two sessions
+        :param before_stat:
         :param after_stat:
         :return:
         """
