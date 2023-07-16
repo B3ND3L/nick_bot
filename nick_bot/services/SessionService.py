@@ -137,6 +137,14 @@ class SessionService:
             returned_stats.append(stat)
         return returned_stats
 
+    def get_heroes_names(self):
+        """
+        Get all heroes names
+        :return:
+        """
+        return self._overwatch_database.get_heroes_names()
+
+
     async def compute_session_stat(self, battletags) -> list:
         """
         Compute session stats for a list of battletags
@@ -166,7 +174,16 @@ class SessionService:
                 for role in self.__ROLES:
                     delta_stat['player'] = player
                     delta_stat[role] = self.make_diff(before_stat['roles'][role], after_stat['roles'][role])
+                    if not delta_stat[role]:
+                        del(delta_stat[role])
                     delta_session_stats.append(delta_stat)
+                for hero in  self.get_heroes_names():
+                    delta_stat['player'] = player
+                    delta_stat[hero] = self.make_diff(before_stat['heroes'][hero], after_stat['heroes'][hero])
+                    if not delta_stat[hero]:
+                        del(delta_stat[hero])
+                    delta_session_stats.append(delta_stat)
+
         return delta_session_stats
 
     def make_diff(self, stat_before: dict, stat_after: dict) -> dict:
@@ -211,27 +228,6 @@ class SessionService:
         delta_games_played = after_games_played - before_games_played
         return self.compute_winrate(delta_wins, delta_games_played)
 
-    @staticmethod
-    def format_stats(stats: list) -> dict:
-        """
-        Format stats in a dict
-        :param stats:
-        :return:
-        """
-        returned_dict = {}
-        for stat in stats:
-            returned_dict[stat['player']] = stat
-        return returned_dict
-
-    @staticmethod
-    def format_battletag(battletag: str) -> str:
-        """
-        Format battletag to be used in API request
-        :param battletag:
-        :return:
-        """
-        return battletag.replace('#', '-')
-
     def compute_nb_games_played(self, before_stat, after_stat) -> int:
         """
         Compute number of games played between two sessions
@@ -252,6 +248,40 @@ class SessionService:
         :return:
         """
         return after_game - before_game
+
+    def compute_kda(self, eliminations, deaths, assists) -> float:
+        """
+        Compute KDA
+        :param eliminations:
+        :param deaths:
+        :param assists:
+        :return:
+        """
+        if deaths == 0:
+            return eliminations + assists
+        else:
+            return (eliminations + assists) / deaths
+
+    @staticmethod
+    def format_stats(stats: list) -> dict:
+        """
+        Format stats in a dict
+        :param stats:
+        :return:
+        """
+        returned_dict = {}
+        for stat in stats:
+            returned_dict[stat['player']] = stat
+        return returned_dict
+
+    @staticmethod
+    def format_battletag(battletag: str) -> str:
+        """
+        Format battletag to be used in API request
+        :param battletag:
+        :return:
+        """
+        return battletag.replace('#', '-')
 
     @staticmethod
     def compute_win_count_by_winrate_and_games(winrate, games_played) -> int:

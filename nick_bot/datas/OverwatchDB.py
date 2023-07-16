@@ -105,6 +105,20 @@ class OverwatchDB:
     MANAGE HEROES DOCUMENTS
     """
 
+    def get_heroes_names(self):
+        """
+        Get all heroes names
+        :return:
+        """
+        return self.find_documents(self.__HEROES_COLLECTION_NAME, {}, {'_id': 0, 'name': 1})
+
+    def get_heroes(self):
+        """
+        Get all heroes
+        :return:
+        """
+        return self.find_documents(self.__HEROES_COLLECTION_NAME)
+
     def insert_heroes(self, heroes: list):
         """
         Insert heroes in database
