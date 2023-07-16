@@ -110,7 +110,7 @@ class OverwatchDB:
         Get all heroes names
         :return:
         """
-        return self.find_documents(self.__HEROES_COLLECTION_NAME, {}, {'_id': 0, 'name': 1})
+        return self.find_documents(self.__HEROES_COLLECTION_NAME, {}, {'_id': 0, 'key': 1})
 
     def get_heroes(self):
         """
