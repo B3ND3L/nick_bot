@@ -32,5 +32,7 @@ class RenameService:
                         await member.edit(nick=new_name)
                         message = f'Renommage de {old_name} en {new_name}'
                     except Exception:
+                        #affiche l'erreur dans la console
+                        print(Exception)
                         message = f'Je n\'ai pas les droits de renommage {old_name}'
         return message
