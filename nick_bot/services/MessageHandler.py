@@ -17,6 +17,9 @@ class MessageHandler:
     #REGEX : @nick_bot timeout @someone
     __TIMEOUT_REGEX = re.compile('<@\d+>\s+(timeout)\s+<@\d+>')
 
+    #REGEX : @nick_bot help
+    __HELP_REGEX = re.compile('<@\d+>\s+(help)')
+
     def __init__(self, client: Client):
         """
         Constructor
@@ -37,8 +40,7 @@ class MessageHandler:
         content = message.content
         match_rename = re.match(self.__RENAME_REGEX, content)
         match_timeout = re.match(self.__TIMEOUT_REGEX, content)
-
-        return_message = 'Je ne sais pas quoi répondre.'
+        match_help = re.match(self.__HELP_REGEX, content)
 
         if message.mentions:
             if match_rename:
@@ -48,10 +50,11 @@ class MessageHandler:
             elif match_timeout:
                 mentionned_member = self.get_metionned_member(message.mentions)
                 return_message = self._timeout_service.timeout_user(mentionned_member)
-            else:
+            elif match_help:
                 return_message = self.get_default_answer()
 
-        await message.channel.send(return_message)
+            if return_message :
+                await message.channel.send(return_message)
 
     @staticmethod
     def get_default_answer():
