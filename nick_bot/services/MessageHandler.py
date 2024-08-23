@@ -42,7 +42,8 @@ class MessageHandler:
         match_timeout = re.match(self.__TIMEOUT_REGEX, content)
         match_help = re.match(self.__HELP_REGEX, content)
 
-        if message.mentions:
+        if self.is_nick_bock_mentionned(message.mentions):
+            return_message = 'Je ne sais pas ce que tu me veux.'
             if match_rename:
                 mentionned_member = self.get_metionned_member(message.mentions)
                 new_name = match_rename.group(3)
@@ -53,8 +54,7 @@ class MessageHandler:
             elif match_help:
                 return_message = self.get_default_answer()
 
-            if return_message :
-                await message.channel.send(return_message)
+            await message.channel.send(return_message)
 
     @staticmethod
     def get_default_answer():
@@ -65,6 +65,9 @@ Pour recevoir de l'aide :
 Pour renommer quelqu'un:
 `renomme @name en nouveau_nom`
                     '''
+
+    def is_nick_bock_mentionned(self, mentions: list[Member]) -> bool:
+        return self._discord_client.user.id in list(map(lambda mention: mention.id, mentions))
 
     def get_metionned_member(self, mentions: list[Member]) -> Member | None:
         mentioned_ids = list(map(lambda mention: mention.id, mentions))
