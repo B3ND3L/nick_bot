@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "nick_bot"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["B3ND3L <delahais.b@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 discord = "^2.0.0"
 "ruamel.yaml" = "^0.17.21"
 requests = "^2.28.2"

@@ -1,4 +1,4 @@
-from discord import Client
+from discord import Client, Member
 
 
 class RenameService:
@@ -14,25 +14,20 @@ class RenameService:
         """
         self._discord_client = discord_client
 
-    async def renaming(self, new_name: str, mentioned_ids: list) -> str:
+    async def renaming(self, new_name: str, mentionned_member: Member) -> str:
         """
         Rename a user
         :param new_name:
-        :param mentioned_ids:
+        :param mentionned_member:
         :return:
         """
         message = 'Impossible de renommer l\'utilisateur'
-        members = self._discord_client.get_all_members()
-        for member in members:
-            old_name = ''
-            for id in mentioned_ids:
-                if member.id == id:
-                    old_name = member.name
-                    try:
-                        await member.edit(nick=new_name)
-                        message = f'Renommage de {old_name} en {new_name}'
-                    except Exception:
-                        #affiche l'erreur dans la console
-                        print(Exception)
-                        message = f'Je n\'ai pas les droits de renommage {old_name}'
+        try:
+            old_name = mentionned_member.name
+            await mentionned_member.edit(nick=new_name)
+            message = f'Renommage de {old_name} en {new_name}'
+        except Exception:
+            #affiche l'erreur dans la console
+            print(Exception)
+            message = f'Je n\'ai pas les droits de renommage {old_name}'
         return message

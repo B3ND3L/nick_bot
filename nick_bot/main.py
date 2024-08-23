@@ -5,8 +5,7 @@ from discord import Member
 from discord import Message
 from ruamel.yaml import YAML
 
-from nick_bot.services.MessageService import MessageService
-from nick_bot.services.RenameService import RenameService
+from nick_bot.services.MessageHandler import MessageHandler
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -18,8 +17,7 @@ client = discord.Client(intents=intents)
 yaml = YAML()
 config = yaml.load(open("../config/config.yaml"))
 
-rename_service = RenameService(client)
-message_service = MessageService(rename_service)
+message_service = MessageHandler(client)
 
 logger = logging.getLogger('discord')
 
@@ -41,8 +39,6 @@ async def on_message(message: Message):
     """
     if message.author == client.user:
         return
-    response = await message_service.read_message(client.user.id, message)
-    if response:
-        await message.channel.send(response)
+    await message_service.handle_message(client.user.id, message)
 
 client.run(config['token'])
