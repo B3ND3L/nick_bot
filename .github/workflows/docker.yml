@@ -20,7 +20,7 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        host: ${{ secrets.DOCKERHUB_HTTP_HOST }}
+        registry: ${{ secrets.DOCKERHUB_HTTP_HOST }}
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
