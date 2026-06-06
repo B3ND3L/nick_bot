@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from discord import Client, Member
+from discord.ext import commands
 
 
 class TimeoutService:
@@ -11,6 +12,7 @@ class TimeoutService:
         self._discord_client = discord_client
 
 
+    @commands.has_permissions(moderate_members=True)
     def timeout_user(self, member: Member):
         member.timeout(timedelta(seconds=self.__TIMEOUT_DURATION))
         return f'{member.name} ne peut plus envoyer de message pendant {self.__TIMEOUT_DURATION} secondes.'

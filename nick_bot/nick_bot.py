@@ -3,9 +3,8 @@ import logging
 
 from discord import Member
 from discord import Message
-from ruamel.yaml import YAML
-
-from nick_bot.services.MessageHandler import MessageHandler
+from services.MessageHandler import MessageHandler
+import yaml
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -14,8 +13,8 @@ intents.presences = True
 
 client = discord.Client(intents=intents)
 
-yaml = YAML()
-config = yaml.load(open("../config/config.yaml"))
+with open('../config/config.yaml', 'r') as ymlfile:
+    config = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
 message_service = MessageHandler(client)
 

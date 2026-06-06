@@ -1,15 +1,16 @@
-FROM python:3.12-slim
+FROM ghcr.io/astral-sh/uv:0.11-trixie-slim as builder
+
+COPY nick_bot .
+COPY pyproject.toml .
+COPY uv.lock .
+
+RUN uv sync
+
+FROM python:3.14-slim as final
 
 WORKDIR /app
 
-COPY nick_bot nick_bot
-COPY poetry.lock poetry.lock
-COPY pyproject.toml pyproject.toml
+COPY --from=builder .venv/lib/python3.14/site-packages /usr/local/lib/python3.14
+COPY nick_bot .
 
-# Install and configure Poetry
-RUN pip install poetry
-ENV PATH="${PATH}:/home/python/.local/bin"
-
-RUN poetry install
-
-CMD poetry run python nick_bot/main.py
+CMD python nick_bot.py

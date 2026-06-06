@@ -1,8 +1,8 @@
 import re
 
 from discord import Message, Member, Client
-from nick_bot.services.RenameService import RenameService
-from nick_bot.services.TimeoutService import TimeoutService
+from .RenameService import RenameService
+from .TimeoutService import TimeoutService
 
 
 class MessageHandler:
